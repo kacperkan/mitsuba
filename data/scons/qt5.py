@@ -371,48 +371,48 @@ def generate(env):
 def enable_modules(self, modules, debug=False, crosscompiling=False) :
         import sys
 
-        validModules = [
-                'QtCore',
-                'QtGui',
-                'QtWidgets',
-                'QtOpenGL',
-                'Qt3Support',
-                'QtAssistant', # deprecated
-                'QtAssistantClient',
-                'QtScript',
-                'QtDBus',
-                'QtSql',
-                'QtSvg',
+        validModules = {
+                'QtCore': 'Qt5Core',
+                'QtGui': 'Qt5Gui',
+                'QtWidgets': 'Qt5Widgets',
+                'QtOpenGL': 'Qt5OpenGL',
+                'Qt3Support': 'Qt3Support',
+                'QtAssistant': 'Qt5Assistant', # deprecated
+                'QtAssistantClient': 'Qt5AssistantClient',
+                'QtScript': 'Qt5Script',
+                'QtDBus': 'Qt5DBus',
+                'QtSql': 'Qt5Sql',
+                'QtSvg': 'Qt5Svg',
                 # The next modules have not been tested yet so, please
                 # maybe they require additional work on non Linux platforms
-                'QtNetwork',
-                'QtTest',
-                'QtXml',
-                'QtXmlPatterns',
-                'QtUiTools',
-                'QtDesigner',
-                'QtDesignerComponents',
-                'QtWebKit',
-                'QtHelp',
-                'QtScript',
-                'QtScriptTools',
-                'QtMultimedia',
-                ]
+                'QtNetwork': 'Qt5Network',
+                'QtTest': 'Qt5Test',
+                'QtXml': 'Qt5Xml',
+                'QtXmlPatterns': 'Qt5XmlPatterns',
+                'QtUiTools': 'Qt5UiTools',
+                'QtDesigner': 'Qt5Designer',
+                'QtDesignerComponents': 'Qt5DesignerComponents',
+                'QtWebKit': 'Qt5WebKit',
+                'QtHelp': 'Qt5Help',
+                'QtScript': 'Qt5Script',
+                'QtScriptTools': 'Qt5ScriptTools',
+                'QtMultimedia': 'Qt5Multimedia',
+                }
         pclessModules = [
 # in qt <= 4.3 designer and designerComponents are pcless, on qt5.4 they are not, so removed.
 #               'QtDesigner',
 #               'QtDesignerComponents',
         ]
-        staticModules = [
-                'QtUiTools',
-        ]
+        staticModules = {
+                'QtUiTools': 'Qt5UiTools',
+        }
         invalidModules=[]
         for module in modules:
                 if module not in validModules :
                         invalidModules.append(module)
         if invalidModules :
                 raise Exception("Modules %s are not Qt5 modules. Valid Qt5 modules are: %s"% (
-                        str(invalidModules),str(validModules)))
+                        str(invalidModules),str(validModules.keys())))
 
         moduleDefines = {
                 'QtScript'   : ['QT_SCRIPT_LIB'],
@@ -446,7 +446,8 @@ def enable_modules(self, modules, debug=False, crosscompiling=False) :
                         pcmodules.remove("QtAssistant")
                         pcmodules.append("QtAssistantClient")
                 if sys.platform.startswith('linux'):
-                        self.ParseConfig('pkg-config %s --libs --cflags'% ' '.join(pcmodules))
+                        pkgconfigmodules = [validModules[module]+debugSuffix for module in modules if module not in pclessModules]
+                        self.ParseConfig('pkg-config %s --libs --cflags'% ' '.join(pkgconfigmodules))
                 elif sys.platform == 'darwin':
                         for module in pcmodules:
                                 #self.AppendUnique(CPPPATH="$QTDIR/frameworks/%s.framework/Versions/5/Headers" % module)
